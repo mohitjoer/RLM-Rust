@@ -6,7 +6,7 @@ authors = ["Mohit <https://github.com/mohit>"]
 description = "A high-performance, fully Rust-based engine for Recursive Language Models (RLM) enabling infinite context processing."
 license = "MIT OR Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/mohit/RLM-Rust"
+repository = "https://github.com/mohitjoer/RLM-Rust"
 keywords = ["llm", "ai", "rlm", "agent", "recursive-language-models"]
 categories = ["command-line-utilities", "asynchronous", "api-bindings"]
 

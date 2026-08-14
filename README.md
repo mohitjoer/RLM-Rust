@@ -1,6 +1,6 @@
 # RLM-Rust — Recursive Language Models in Rust 🦀
 
-[![CI](https://github.com/mohit/RLM-Rust/actions/workflows/ci.yml/badge.svg)](https://github.com/mohit/RLM-Rust/actions/workflows/ci.yml)
+[![CI](https://github.com/mohitjoer/RLM-Rust/actions/workflows/ci.yml/badge.svg)](https://github.com/mohitjoer/RLM-Rust/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/rlm.svg)](https://crates.io/crates/rlm)
 [![Documentation](https://docs.rs/rlm/badge.svg)](https://docs.rs/rlm)
 [![License](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg)](LICENSE-MIT)
