@@ -1,4 +1,6 @@
-//! Quickstart example demonstrating RLM in Rust.
+//! Quickstart example demonstrating the pure-Rust RLM engine.
+//!
+//! Uses the Rhai scripting engine (no Python required).
 
 use rlm::core::rlm::{Rlm, RlmConfig};
 use rlm::logger::RlmLogger;
@@ -34,6 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "Starting RLM completion query using provider {:?} ({model_name})...",
         backend
     );
+    println!("Using pure-Rust Rhai REPL (no Python required)");
 
     // Generate a haystack of text with a hidden secret number
     let secret_number: u64 = 428_571_932;
@@ -60,7 +63,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let prompt = format!(
         "The context contains 1000 lines of text with a single line \
          matching SECRET_NUMBER=<digits>.\n\
-         Find the key in context, set answer['content'] to the extracted digits, and set answer['ready'] = True.\n\n{haystack}"
+         Find the key in context using the Rhai REPL, and call submit_answer(digits) \
+         with the extracted numeric value.\n\n{haystack}"
     );
 
     let result = rlm.completion(&prompt, None).await?;

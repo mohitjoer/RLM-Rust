@@ -108,6 +108,9 @@ impl GeminiClient {
             .unwrap_or(DEFAULT_TIMEOUT);
 
         let http = Client::builder()
+            .tcp_nodelay(true)
+            .pool_max_idle_per_host(10)
+            .pool_idle_timeout(std::time::Duration::from_secs(90))
             .timeout(std::time::Duration::from_secs(timeout))
             .build()
             .map_err(|e| RlmError::ClientError(e.to_string()))?;
@@ -195,24 +198,40 @@ impl GeminiClient {
             system_instruction,
         };
 
-        let resp = self
-            .http
-            .post(&url)
-            .header("Content-Type", "application/json")
-            .json(&body)
-            .send()
-            .await?;
+        let mut retries = 0;
+        loop {
+            let resp = self
+                .http
+                .post(&url)
+                .header("Content-Type", "application/json")
+                .json(&body)
+                .send()
+                .await?;
 
-        if !resp.status().is_success() {
             let status = resp.status();
-            let body_text = resp.text().await.unwrap_or_default();
-            return Err(RlmError::ClientError(format!(
-                "Gemini API returned {status}: {body_text}"
-            )));
+            if (status == reqwest::StatusCode::TOO_MANY_REQUESTS
+                || status == reqwest::StatusCode::SERVICE_UNAVAILABLE)
+                && retries < 5
+            {
+                retries += 1;
+                tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+                continue;
+            }
+
+            if !resp.status().is_success() {
+                let status = resp.status();
+                let body_text = resp.text().await.unwrap_or_default();
+                return Err(RlmError::ClientError(format!(
+                    "Gemini API returned {status}: {body_text}"
+                )));
+            }
+
+            let response: GenerateContentResponse = resp.json().await?;
+            return Ok(self.extract_and_track_usage(response));
         }
+    }
 
-        let response: GenerateContentResponse = resp.json().await?;
-
+    fn extract_and_track_usage(&self, response: GenerateContentResponse) -> String {
         // Track usage
         if let Some(usage) = &response.usage_metadata {
             let mut state = self.usage.lock().unwrap();
@@ -227,16 +246,14 @@ impl GeminiClient {
         }
 
         // Extract text from first candidate
-        let text = response
+        response
             .candidates
             .as_ref()
             .and_then(|c| c.first())
             .and_then(|c| c.content.as_ref())
             .and_then(|c| c.parts.first())
             .map(|p| p.text.clone())
-            .unwrap_or_default();
-
-        Ok(text)
+            .unwrap_or_default()
     }
 }
 

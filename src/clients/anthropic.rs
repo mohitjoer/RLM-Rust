@@ -102,6 +102,9 @@ impl AnthropicClient {
             .unwrap_or(DEFAULT_TIMEOUT);
 
         let http = Client::builder()
+            .tcp_nodelay(true)
+            .pool_max_idle_per_host(10)
+            .pool_idle_timeout(std::time::Duration::from_secs(90))
             .timeout(std::time::Duration::from_secs(timeout))
             .build()
             .map_err(|e| RlmError::ClientError(e.to_string()))?;
@@ -168,6 +171,7 @@ impl AnthropicClient {
             .post(ANTHROPIC_API_URL)
             .header("x-api-key", &self.api_key)
             .header("anthropic-version", ANTHROPIC_API_VERSION)
+            .header("anthropic-beta", "prompt-caching-2024-07-31")
             .header("Content-Type", "application/json")
             .json(&body)
             .send()

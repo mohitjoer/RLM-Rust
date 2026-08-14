@@ -122,6 +122,9 @@ impl OpenAiClient {
             .unwrap_or_default();
 
         let http = Client::builder()
+            .tcp_nodelay(true)
+            .pool_max_idle_per_host(10)
+            .pool_idle_timeout(std::time::Duration::from_secs(90))
             .timeout(std::time::Duration::from_secs(timeout))
             .build()
             .map_err(|e| RlmError::ClientError(e.to_string()))?;
